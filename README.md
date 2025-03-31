@@ -57,7 +57,9 @@ admin.site.register(Post)
 - `insta/settings.py`파일의 마지막 줄에 `image/`추가
 
 ## 3-4. requirement.txt
-- `pip freeze >> requirements.txt` => `requirements.txt`폴더 생성
+- `pip freeze >> requirements.txt` => `requirements.txt`폴더 생성\
+=> 현재 상태를 추가
+- `pip freeze > requirements.txt`를 할 경우 현재 상태를 덮어씌움
 - 내가 설치한 라이브러리를 알려줌
 - 새로운 라이브러리를 설치하면 위의 코드를 한번 더 해줘야함
 
@@ -307,7 +309,7 @@ def create(request):
     }
     return render(request, 'create.html', context)
 ```
-### bootstrap5
+### [bootstrap5](https://pypi.org/project/django-bootstrap5/)
 - `pip install django-bootstrap5`
 - `insta/settings.py`에 `django_bootstrap5`등록
 ```python
@@ -329,4 +331,25 @@ INSTALLED_APPS = [
     <input type="submit" class="btn btn-primary">
 </form>
 {% endblock %}
+```
+### [resized](https://pypi.org/project/django-resized/)
+- `posts/templates/_cards.html`에서 `style="width: 18rem;"`로 카드 크기를 설정해서 사진이 일정하게 보이지만 사진을 저장할 때 일정한 크기로 저장하는 것이 더 좋은 방법
+- `pip install django-resized`
+- `posts/models.py`
+```python
+from django.db import models
+from django_resized import ResizedImageField
+
+# Create your models here.
+class Post(models.Model):
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    # image = models.ImageField(upload_to='image')
+    image = ResizedImageField(
+        size=[500, 500],
+        crop=['middel', 'center'],
+        upload_to='image/%Y/%m', 
+        # 이미지 이름이 같은 파일은 다른 이름으로 저장됨
+        # => /%Y/%m 연도를 기준으로 폴더을 만들고 그 안에 달을 기준으로 폴더를 더 만듦
+    )
 ```
