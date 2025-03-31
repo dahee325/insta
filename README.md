@@ -138,7 +138,7 @@ urlpatterns = [
 ```
 => 위의 코드를 추가하면 사진이 뜸
 
-### bootstrap
+### Card
 - `posts/templates/_card.html` 파일 생성 -> [card](https://getbootstrap.com/docs/5.3/components/card/) 그대로 복붙\
 => `style="width: 18rem;"` : 카드를 일정한 크기로 설정
 ```html
@@ -188,18 +188,18 @@ urlpatterns = [
 </body>
 ```
 
-## 3-7. Create
+### Navbar
 - `templates/_nav.html`파일 생성 -> [nav-bar](https://getbootstrap.com/docs/5.3/components/navbar/)
 ```html
 <nav class="navbar navbar-expand-lg bg-body-tertiary">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">Navbar</a>
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Navbar</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
+        <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-      <div class="navbar-nav">
-        <a class="nav-link active" aria-current="page" href="#">Home</a>
+        <div class="navbar-nav">
+            <a class="nav-link active" aria-current="page" href="#">Home</a>
         <a class="nav-link" href="#">Features</a>
         <a class="nav-link" href="#">Pricing</a>
         <a class="nav-link disabled" aria-disabled="true">Disabled</a>
@@ -221,5 +221,112 @@ urlpatterns = [
 ```
 - `templates/_nav.html` : 코드 수정
 ```html
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'posts:index' %}">Insta</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+          <div class="navbar-nav">
+              <a class="nav-link" href="{% url 'posts:create' %}">Create</a>
+          <a class="nav-link" href="#">Signup</a>
+          <a class="nav-link" href="#">Login</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+```
+## 3-7. Create
+- `posts/urls.py`
+```python
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('create/', views.create, name='create'),
+]
+```
+- `posts/views.py`
+```python
+def create(request):
+    if request.method == 'POST':
+        pass
+    else:
+        pass
+```
+- `posts/forms.py`파일 생성
+```python
+from django.forms import ModelForm
+from .models import Post
 
+class PostForm(ModelForm):
+    class Meta():
+        model = Post
+        fields = '__all__'
+```
+- `post/views.py`
+```python
+from .forms import PostForm
+
+def create(request):
+    if request.method == 'POST':
+        pass
+    else:
+        form = PostForm()
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'create.html', context)
+```
+- `posts/templates/create.html`파일 생성
+```html
+{% block body%}
+<form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{form}}
+    <input type="submit">
+</form>
+{% endblock %}
+```
+=> `enctype` : 인코딩 타입, 파일을 업로드 할 때 사용해야하는 설정
+- `posts/views.py` : if문 채우기
+```python
+from django.shortcuts import render, redirect
+
+def create(request):
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES) # request.FILES : 사진이 들어있는 공간
+        if form.is_valid():
+            form.save()
+            return redirect('posts:index')
+    else:
+        form = PostForm()
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'create.html', context)
+```
+### bootstrap5
+- `pip install django-bootstrap5`
+- `insta/settings.py`에 `django_bootstrap5`등록
+```python
+INSTALLED_APPS = [
+    ...
+    'posts',
+    'django_bootstrap5',
+]
+```
+- `posts/templates/create.html`
+```html
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block body%}
+<form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    <input type="submit" class="btn btn-primary">
+</form>
+{% endblock %}
 ```
