@@ -673,3 +673,24 @@ def create(request):
     </div>
   </nav>
 ```
+
+### 게시물을 작게 만들기
+- `posts/templates/index.html`
+```html
+{% block body %}
+    <div class="row">
+        {% for post in posts %}
+            {% include '_card.html' %}
+        {% endfor %}
+    </div>
+{% endblock %}
+```
+- `posts/templates/_card.html`
+```html
+<!-- <div class="card my-3 col-12 col-md-6 col-xl-4"> -->
+<!--col-xl-4 : 게시물의 크기 설정-->
+<div class="card my-3 col-12 offset-md-2 col-xl-4" style="width: 18rem;">
+<!--offset-md-2 : 앞에 2칸을 비워주세요-> 마지막은 자동으로 4칸-->
+    ...
+</div>
+```

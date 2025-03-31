@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
 
 {% block body %}
-    {% for post in posts %}
-        {% include '_card.html' %}
-    {% endfor %}
+    <div class="row">
+        {% for post in posts %}
+            {% include '_card.html' %}
+        {% endfor %}
+    </div>
 {% endblock %}
