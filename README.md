@@ -25,8 +25,27 @@ TEMPLATES = [
 ```
 - `templates/base.html` : bootstrap `<link>`랑 `<script>` 넣기
 
-# 3. modeling
+# 3. Post
+## 3-1. modeling
 - `posts/models.py` : [ImageField](https://docs.djangoproject.com/en/5.1/ref/forms/fields/#imagefield))
 ```python
+class Post(models.Model):
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    image = models.ImageField(upload_to='image')
+```
+## 3-2. Migration
+- `python manage.py makemigrations` => Pillow(이미지 처리를 위한 라이브러리)를 설치하라고 에러가 남
+- `pip install pillow`
+- `python manage.py makemigrations`
+- `python manage.py migrate`
 
+## 3-3. admin 계정 만들기
+- `posts/admin.py` : admin에 Post 모델 등록
+```python
+from django.contrib import admin
+from .models import Post
+
+# Register your models here.
+admin.site.register(Post)
 ```
