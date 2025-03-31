@@ -60,3 +60,49 @@ admin.site.register(Post)
 - `pip freeze >> requirements.txt` => `requirements.txt`폴더 생성
 - 내가 설치한 라이브러리를 알려줌
 - 새로운 라이브러리를 설치하면 위의 코드를 한번 더 해줘야함
+
+## 3-5. Read
+- `insta/urls.py`
+```python
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('posts/', include('posts.urls'))
+]
+```
+- `posts`폴더 안에 `urls.py`생성
+```python
+from django.urls import path
+from m import views
+
+app_name = 'posts'
+
+urlpatterns = [
+    path('', views.index, name='index'),
+]
+```
+- `posts/views.py`
+```python
+from django.shortcuts import render
+from .models import Post
+
+def index(request):
+    posts = Post.objects.all()
+
+    context = {
+        'posts': posts,
+    }
+    return render(request, 'index.html', context)
+```
+- `posts/templates/index.html`폴더랑 파일 생성
+```html
+{% extends 'base.html' %}
+
+{% block body %}
+    {% for post in posts%}
+        <p>{{post.content}}</p>
+        <p>{{post.image}}</p>
+    {% endfor %}
+{% endblock %}
+```
