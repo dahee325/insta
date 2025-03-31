@@ -55,3 +55,8 @@ admin.site.register(Post)
 => 폴더 안에 등록한 사진 저장됨
 - 생성된 `image`폴더는 코드가 아니라 임시 데이터일 뿐이므로 `.gitignore`에 `image`폴더 추가
 - `insta/settings.py`파일의 마지막 줄에 `image/`추가
+
+## 3-4. requirement.txt
+- `pip freeze >> requirements.txt` => `requirements.txt`폴더 생성
+- 내가 설치한 라이브러리를 알려줌
+- 새로운 라이브러리를 설치하면 위의 코드를 한번 더 해줘야함
