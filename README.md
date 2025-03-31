@@ -405,7 +405,7 @@ class Post(models.Model):
 - `python manage.py makemigrations`
 - `python manage.py migrate`
 
-## 4-4. Create
+## 4-4. Signup
 - `insta/urls.py`
 ```python
 urlpatterns = [
@@ -494,4 +494,75 @@ def signup(request):
         'form': form,
     }
     return render(request, 'signup.html', context)
+```
+
+## 4-5. Login
+- `accounts/urls.py`
+```python
+urlpatterns = [
+    path('signup/', views.signup, name='signup'),
+    path('login/', views.login, name='login'),
+]
+```
+- `accounts/views.py`
+```python
+def login(request):
+    if request.method == 'POST':
+        pass
+    else:
+        pass
+```
+- `accounts/forms.py`
+```python
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+
+class CustomAuthenticationForm(AuthenticationForm):
+    pass
+```
+- `accounts/views.py`
+```python
+from .forms import CustomUserCreationForm, CustomAuthenticationForm
+
+def login(request):
+    if request.method == 'POST':
+        pass
+    else:
+        form = CustomAuthenticationForm()
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'login.html', context)
+```
+- `accounts/templates/login.html`파일 생성
+```html
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+{% block body %}
+    <form action="" method="POST">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <input type="submit" class="btn btn-primary">
+    </form>
+{% endblock %}
+```
+- `accounts/views.py`
+```python
+from django.contrib.auth import login as auth_login
+
+def login(request):
+    if request.method == 'POST':
+        form = CustomAuthenticationForm(request, request.POST)
+        if form.is_valid():
+            user = form.get_user() # 내가 로그인하려고하는 유저의 정보(id, password)
+            auth_login(request, user)
+            return redirect('posts:index')
+
+    else:
+        form = CustomAuthenticationForm()
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'login.html', context)
 ```
