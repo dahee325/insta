@@ -355,3 +355,52 @@ class Post(models.Model):
 ```
 
 # 4. Account
+## 4-1. makeproject
+- `pip install startapp accounts`
+- `insta/settings.py`에 `accounts`앱 등록
+```python
+INSTALLED_APPS = [
+    ...
+    'posts',
+    'django_bootstrap5',
+    'accounts',
+]
+```
+
+## 4-2. modeling
+- `accounts/models.py`
+```python
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django_resized import ResizedImageField
+
+# Create your models here.
+class User(AbstractUser):
+    profile_image = ResizedImageField(
+        size=[500, 500],
+        crop=['middel', 'center'],
+        upload_to='profile'
+    )
+```
+- `insta/settings.py` : 새로운 User를 만들었으니 내가 만든걸 써달라고 말하기
+```python
+AUTH_USER_MODEL = 'accounts.User' # 마지막에 추가
+```
+- `posts/models.py`
+```python
+from django.conf import settings
+
+# Create your models here.
+class Post(models.Model):
+    ...
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+        )
+```
+
+## 4-3. Migration
+- `python manage.py makemigrations`하면 에러가 생김 -> 기존 데이터에 User를 추가하면 기존에 있던 데이터의 USer에는 무엇을 넣어야돼? (디폴드값을 주거나 수동으로 models.py를 수정하거나 결정)
+- `posts`와 `accounts`의 migration한 파일(`0001_initial.py`)을 지우고 `db.sqlite3`도 지우고 다시 migration실행
+- `python manage.py makemigrations`
+- `python manage.py migrate`
