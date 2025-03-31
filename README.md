@@ -49,3 +49,9 @@ from .models import Post
 # Register your models here.
 admin.site.register(Post)
 ```
+- `python manage.py createsuperuser`
+- `python manage.py runserver` \
+=> 만든 계정으로 로그인한 후 Posts에 게시글을 사진과 함께 등록하면 `image`폴더 생성\
+=> 폴더 안에 등록한 사진 저장됨
+- 생성된 `image`폴더는 코드가 아니라 임시 데이터일 뿐이므로 `.gitignore`에 `image`폴더 추가
+- `insta/settings.py`파일의 마지막 줄에 `image/`추가
