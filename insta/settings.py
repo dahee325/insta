@@ -124,6 +124,6 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # 업로드한 사진을 저장한 위치 (실제 폴더 경로)
-MEDIA_ROOT = BASE_DIR / 'image'
+MEDIA_ROOT = BASE_DIR / 'media'
 # 미디어 경로를 처리할 URL, 
-MEDIA_URL = '/image/'
+MEDIA_URL = '/media/'

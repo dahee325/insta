@@ -109,9 +109,9 @@ def index(request):
 - `insta/settings.py` : 마지막에 추가
 ```python
 # 업로드한 사진을 저장한 위치 (실제 폴더 경로)
-MEDIA_ROOT = BASE_DIR / 'image'
+MEDIA_ROOT = BASE_DIR / 'media'
 # 미디어 경로를 처리할 URL, 
-MEDIA_URL = '/image/'
+MEDIA_URL = '/media/'
 ```
 - `insta/urls.py`
 ```python
@@ -126,4 +126,62 @@ urlpatterns = [
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) # concatenation
 # static : 어떤 경로로 들어왔을 때, 어떤 경로로 가주세요 (경로/실제 파일의 위치)
 # path('/image/cat.jpg', 'c/Desktop/damf2/insta/image/cat.jpg') => 이미지가 추가될 때마다 생성됨
+```
+- `posts/templates/index.html`
+```html
+        <p>{{post.image.url}}</p>
+```
+=> 위의 코드를 추가하면 페이지를 새로고침 했을 때 `/media/image/cat.jpg`파일의 경로가 출력되고 이 주소로 들어가면 해당하는 사진이 뜸
+```html
+        <img src="{{post.image.url}}" alt="">
+```
+=> 위의 코드를 추가하면 사진이 뜸
+
+
+- `posts/templates/_card.html` 파일 생성 ->[card](https://getbootstrap.com/docs/5.3/components/card/) 그대로 복붙
+```html
+<div class="card" style="width: 18rem;">
+  <img src="..." class="card-img-top" alt="...">
+  <div class="card-body">
+    <h5 class="card-title">Card title</h5>
+    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <a href="#" class="btn btn-primary">Go somewhere</a>
+  </div>
+</div>
+```
+- `posts/templates/index.html`\
+=> `include` : 작은 모듈 단위의 html을 불러오는 명령어
+```html
+{% extends 'base.html' %}
+
+{% block body %}
+    {% for post in posts %}
+        {% include '_card.html' %}
+    {% endfor %}
+{% endblock %}
+```
+- `posts/templates/_card.html`
+```html
+<div class="card my-3" style="width: 18rem;">
+    <div class="card-header">
+        <p>username</p>
+    </div>
+    <img src="{{post.image.url}}" class="" alt="...">
+    <div class="card-body">
+      <!-- <h5 class="card-title">Card title</h5> -->
+      <p class="card-text">{{post.content}}</p>
+      <p class="card-text">{{post.created_at}}</p>
+      <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+    </div>
+  </div>
+```
+- `templates/base.html`
+```html
+<body>
+    <div class="container">
+        {% block body %}
+        {% endblock %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
 ```
