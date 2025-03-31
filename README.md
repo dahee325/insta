@@ -554,8 +554,8 @@ def login(request):
     if request.method == 'POST':
         form = CustomAuthenticationForm(request, request.POST)
         if form.is_valid():
-            user = form.get_user() # 내가 로그인하려고하는 유저의 정보(id, password)
-            auth_login(request, user)
+            user = form.get_user() # 내가 로그인하려고하는 유저의 정보(id, password)를 빼오기
+            auth_login(request, user) # 빼온 정보(user)를 바탕으로 session을 발급받아 cookies(request)에 넣고 로그인
             return redirect('posts:index')
 
     else:
@@ -566,3 +566,44 @@ def login(request):
     }
     return render(request, 'login.html', context)
 ```
+
+## 4-6. Logout
+- `accounts/urls.py`
+```python
+urlpatterns = [
+    path('signup/', views.signup, name='signup'),
+    path('login/', views.login, name='login'),
+    path('logout/', views.logout, name='logout'),
+]
+```
+- `accounts/views.py`
+```python
+from django.contrib.auth import logout as auth_logout
+
+def logout(request):
+    auth_logout(request)
+    return redirect('posts:index')
+```
+
+### navbar 링크 연결
+- `templates/_nav.html`
+```html
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+    ...
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav">
+            {% if user.is_authenticated %}
+            <a class="nav-link" href="{% url 'posts:create' %}">Create</a>
+            <a class="nav-link" href="{% url 'accounts:logout' %}">Logout</a>
+            <a class="nav-link disabled" href="">{{user}}</a>
+            {% else %}
+            <a class="nav-link" href="{% url 'accounts:signup' %}">Signup</a>
+            <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
+            {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+```
+
+## 4-7. 
