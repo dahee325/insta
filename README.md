@@ -404,3 +404,94 @@ class Post(models.Model):
 - `posts`와 `accounts`의 migration한 파일(`0001_initial.py`)을 지우고 `db.sqlite3`도 지우고 다시 migration실행
 - `python manage.py makemigrations`
 - `python manage.py migrate`
+
+## 4-4. Create
+- `insta/urls.py`
+```python
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('posts/', include('posts.urls')),
+    path('accounts/', include('accounts.urls')),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+```
+- `accounts/urls.py` 파일 생성
+```python
+from django.urls import path
+from . import views
+
+app_name = 'accounts'
+
+urlpatterns = [
+    path('signup/', views.signup, name='signup'),
+]
+```
+- `accounts/views.py`
+```python
+from django.shortcuts import render
+
+# Create your views here.
+def signup(request):
+    if request.method == 'POST':
+        pass
+    else:
+        pass
+```
+- `accounts/forms.py`파일 생성
+```python
+from django.contrib.auth.forms import UserCreationForm
+from .models import User
+
+class CustomUserCreationForm(UserCreationForm):
+    class Meta():
+        model = User
+        fields = ('username', 'profile_image', )
+```
+- `accounts/views.py`
+```python
+from django.shortcuts import render
+from .forms import CustomUserCreationForm
+
+# Create your views here.
+def signup(request):
+    if request.method == 'POST':
+        pass
+    else:
+        form = CustomUserCreationForm()
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'signup.html', context)
+```
+- `accounts/templates/signup.html` 폴더랑 파일 생성
+```html
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block body %}
+    <form action="" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <input type="submit">
+    </form>
+{% endblock %}
+```
+- `accounts/views.py` : if문 채우기
+```python
+from django.shortcuts import render, redirect
+from .forms import CustomUserCreationForm
+
+def signup(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('posts:index')
+    else:
+        form = CustomUserCreationForm()
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'signup.html', context)
+```
