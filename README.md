@@ -106,3 +106,24 @@ def index(request):
     {% endfor %}
 {% endblock %}
 ```
+- `insta/settings.py` : 마지막에 추가
+```python
+# 업로드한 사진을 저장한 위치 (실제 폴더 경로)
+MEDIA_ROOT = BASE_DIR / 'image'
+# 미디어 경로를 처리할 URL, 
+MEDIA_URL = '/image/'
+```
+- `insta/urls.py`
+```python
+from django.contrib import admin
+from django.urls import path, include
+from django.conf.urls.static import static
+from django.conf import settings
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('posts/', include('posts.urls')),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) # concatenation
+# static : 어떤 경로로 들어왔을 때, 어떤 경로로 가주세요 (경로/실제 파일의 위치)
+# path('/image/cat.jpg', 'c/Desktop/damf2/insta/image/cat.jpg') => 이미지가 추가될 때마다 생성됨
+```
