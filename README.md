@@ -353,3 +353,5 @@ class Post(models.Model):
         # => /%Y/%m 연도를 기준으로 폴더을 만들고 그 안에 달을 기준으로 폴더를 더 만듦
     )
 ```
+
+# 4. Account
