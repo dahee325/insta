@@ -606,4 +606,47 @@ def logout(request):
   </nav>
 ```
 
-## 4-7. 
+# 5. Post
+- `posts/forms.py`
+```python
+class PostForm(ModelForm):
+    class Meta():
+        model = Post
+        # fields = '__all__'
+        fields = ('content', 'image', )
+```
+- `posts/views.py`\
+=> 로그인한 사람만 create함수를 실행할 수 있게 설정
+=> 게시물을 누가 작성했는지 user정보 추가
+```python
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def create(request):
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES) # request.FILES : 사진이 들어있는 공간
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.user = request.user
+            post.save()
+            return redirect('posts:index')
+    else:
+        form = PostForm()
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'create.html', context)
+```
+- `posts/templates/_card.html` \
+=> 게시물을 작성한 유저 출력
+=> 유저가 설정한 profile 사진 출력 (width="30px"로 크기 조정)
+```html
+<div class="card my-3" style="width: 18rem;">
+    <div class="card-header">
+        <img class="rounded-circle" src="{{post.user.profile_image.url}}" alt="" width="30px">
+        <a href="">{{post.user.username}}</a>
+    </div>
+    ...
+  </div>
+```
