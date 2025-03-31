@@ -24,3 +24,9 @@ TEMPLATES = [
 ]
 ```
 - `templates/base.html` : bootstrap `<link>`랑 `<script>` 넣기
+
+# 3. modeling
+- `posts/models.py` : [ImageField](https://docs.djangoproject.com/en/5.1/ref/forms/fields/#imagefield))
+```python
+
+```
