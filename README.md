@@ -607,6 +607,7 @@ def logout(request):
 ```
 
 # 5. Post
+## 5-1. Create
 - `posts/forms.py`
 ```python
 class PostForm(ModelForm):
@@ -638,9 +639,12 @@ def create(request):
     }
     return render(request, 'create.html', context)
 ```
+
+## 5-2. card 업데이트
 - `posts/templates/_card.html` \
 => 게시물을 작성한 유저 출력
 => 유저가 설정한 profile 사진 출력 (width="30px"로 크기 조정)
+=> `timesince` : 장고가 미리 구현해놓은 작성한 시간이 출력되는 것이 아니라 몇 초/분/시간 전에 작성된 게시글인지 출력
 ```html
 <div class="card my-3" style="width: 18rem;">
     <div class="card-header">
@@ -649,4 +653,23 @@ def create(request):
     </div>
     ...
   </div>
+```
+
+
+### bootstrap [Icons](https://icons.getbootstrap.com/)
+- `templates/base.html` : <link>와 @import url 복붙
+```html
+
+```
+- `templates/_nav.html`
+```html
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{% url 'posts:index' %}">
+        <i class="bi bi-instargram"></i>
+        Insta
+      </a>
+      ...
+    </div>
+  </nav>
 ```
