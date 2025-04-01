@@ -10,15 +10,22 @@
             <!--이름과 팔로우 버튼-->
             <div class="row">
                 <div class="col-3">{{user_profile.username}}</div>
+                {% if user != user_profile %}
+                <!--로그인한 사람과 보고있는 프로필의 사용자가 다르면 버튼을 보여줌-->
                 <div class="col-9">
-                    <a href="" class="btn btn-primary">팔로우</a>
+                    {% if user in user_profile.followers.all %}
+                        <a href="{% url 'accounts:follow' user_profile.username %}" class="btn btn-secondary">팔로우취소</a>
+                    {% else %}
+                        <a href="{% url 'accounts:follow' user_profile.username %}" class="btn btn-primary">팔로우</a>
+                    {% endif %}
                 </div>
+                {% endif %}
             </div>
             <!--게시물, 팔로워, 팔로우 수-->
             <div class="row">
-                <div class="col-4">게시물 :</div>
-                <div class="col-4">팔로워 :</div>
-                <div class="col-4">팔로우 : </div>
+                <div class="col-4">게시물 : {{user_profile.post_set.all|length}}</div>
+                <div class="col-4">팔로워 : {{user_profile.followers.all|length}}</div>
+                <div class="col-4">팔로우 : {{user_profile.followings.all|length}}</div>
             </div>
         </div>
     </div>

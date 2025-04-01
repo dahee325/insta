@@ -1045,7 +1045,7 @@ def profile(request, usernmae):
 ```
 
 # 9. Follow
-- `accounts/models.py`
+- `accounts/models.py` : following 기능 모델링
 ```python
 class User(AbstractUser):
     profile_image = ResizedImageField(
@@ -1060,4 +1060,167 @@ class User(AbstractUser):
     # symmetrical=False : 비대칭 / 1->2팔로우하는 것과 2->1팔로우 하는 것이 다르니까 False로 지정
     # followings : 내가 팔로우하는 사람들
     # followers : 나를 팔로우하는 사람들
+```
+- `accounts/templates/profile.html`
+```html
+
+```
+- `accounts/urls.py`
+```python
+urlpatterns = [
+    path('signup/', views.signup, name='signup'),
+    path('login/', views.login, name='login'),
+    path('logout/', views.logout, name='logout'),
+    path('<username>/', views.profile, name='profile'),
+    path('<username>/follow/', views.follow, name='follow'),
+]
+```
+- `accounts/viewws.py`
+```python
+def follow(request, username):
+    me = request.user # 로그인한 사람
+    you = User.objects.get(username=username) # 들어와있는 페이지의 사용자
+
+    # if you in me.followings.all():
+    if me in you.followers.all():
+        you.followers.remove(me)
+        # 너의 팔로워 목록에서 나를 지워줘
+        # me.followings.remove(you)
+        # 나의 팔로잉 목록에서 너를 지워줘
+    
+    else:
+        you.followers.add(me)
+        # 너의 팔로워목록에 나를 추가해줘
+        # me.followings.add(you)
+        # 내 팔로잉 목록에 너를 추가해줘
+
+    return redirect('accounts:profile', username)
+```
+- `accounts/templates/profile.html`
+```html
+{% block body %}
+    <div class="row my-3">
+        ...
+        <div class="col-9">
+            ...
+            <!--게시물, 팔로워, 팔로우 수-->
+            <div class="row">
+                <div class="col-4">게시물 : {{user_profile.post_set.all|length}}</div>
+                <div class="col-4">팔로워 : {{user_profile.followers.all|length}}</div>
+                <div class="col-4">팔로우 : {{user_profile.followings.all|length}}</div>
+            </div>
+        </div>
+    </div>
+    ...
+{% endblock %}
+```
+- 자신의 프로필 페이지에서는 follow버튼 안보이게 하기
+- `accounts/templates/profile.html`
+```html
+{% extends 'base.html' %}
+
+{% block body %}
+    <div class="row my-3">
+        ...
+        <div class="col-9">
+            <!--이름과 팔로우 버튼-->
+            <div class="row">
+                <div class="col-3">{{user_profile.username}}</div>
+                {% if user != user_profile %}
+                <!--로그인한 사람과 보고있는 프로필의 사용자가 다르면 버튼을 보여줌-->
+                <div class="col-9">
+                    <a href="{% url 'accounts:follow' user_profile.username %}" class="btn btn-primary">팔로우</a>
+                </div>
+                {% endif %}
+            </div>
+            ...
+        </div>
+    </div>
+    ...
+{% endblock %}
+```
+- `accounts/views.py`
+```python
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def follow(request, username):
+    ...
+    if me == you:
+        return redirect('accounts:profile', username)
+    ...
+```
+- `accounts/views.py`의 `Logout`함수와 `posts/views.py`의 `Like`함수에도 `@login_required` 붙여서 로그인했을 때만 실행 가능하게 설정
+- `accounts/templates/profile.html` : 팔로우가 되어있으면 팔로우취소 버튼을 보여주고 팔로우가 안되어있으면 팔로우 버튼을 보여줌
+```html
+{% block body %}
+    <div class="row my-3">
+        ...
+            <!--이름과 팔로우 버튼-->
+            <div class="row">
+                <div class="col-3">{{user_profile.username}}</div>
+                {% if user != user_profile %}
+                <!--로그인한 사람과 보고있는 프로필의 사용자가 다르면 버튼을 보여줌-->
+                <div class="col-9">
+                    {% if user in user_profile.followers.all %}
+                        <a href="{% url 'accounts:follow' user_profile.username %}" class="btn btn-secondary">팔로우취소</a>
+                    {% else %}
+                        <a href="{% url 'accounts:follow' user_profile.username %}" class="btn btn-primary">팔로우</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            ...
+        </div>
+    </div>
+    ...
+{% endblock %}
+```
+
+# 10. Feed
+- 내가 팔로우한 사람들의 피드만 보이이게하는 페이지
+- `templates/_nav.html`
+```html
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+      ...
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav">
+            {% if user.is_authenticated %}
+            ...
+            <a class="nav-link" href="{% url 'posts:feed' %}">feed</a>
+            <a class="nav-link disabled" href="">{{user}}</a>
+            {% else %}
+            ...
+            {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+```
+- `posts/urls.py`
+```python
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('create/', views.create, name='create'),
+
+    path('<int:post_id>/comments/create/', views.comment_create, name='comment_create'),
+    path('<int:post_id>/like/', views.like, name='like'),
+    path('feed/', views.feed, name='feed'),
+]
+```
+- `posts/views.py`
+```python
+def feed(request):
+    followings = request.user.followings.all()
+
+    # 내가 팔로우하는 사람들의 게시물 목록
+    posts = Post.objects.filter(user__in=followings)
+    form = CommentForm()
+
+    context = {
+        'posts': posts,
+        'form': form,
+    }
+    return render(request, 'index.html', context)
 ```
