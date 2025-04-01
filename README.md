@@ -657,7 +657,7 @@ def create(request):
 
 
 ### bootstrap [Icons](https://icons.getbootstrap.com/)
-- `templates/base.html` : <link>와 @import url 복붙
+- `templates/base.html` : <link> 복붙
 ```html
 
 ```
@@ -709,4 +709,100 @@ class Comment(models.Model):
 - `python manage.py makemigrations`
 - `python manage.py migrate`
 
-## 6-3. 
+## 6-3. Create
+- `posts/urls.py`
+```python
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('create/', views.create, name='create'),
+
+    path('<int:post_id>/comments/create/', views.comment_create, name='comment_create'),
+]
+```
+- `posts/forms.py`
+```python
+from .models import Post, Comment
+
+class CommentForm(ModelForm):
+    class Meta():
+        model = Comment
+        fields = ('content', )
+```
+- `posts/views.py` : `index`함수 수정
+```python
+from .forms import PostForm, CommentForm
+
+def index(request):
+    posts = Post.objects.all()
+    form = CommentForm
+    context = {
+        'posts': posts,
+        'form': form,
+    }
+    return render(request, 'index.html', context)
+```
+- `posts/templates/index.html` : `{% include '_card.html' %}`부분 때문에 `_card.html`에 댓글폼 생성
+
+- `posts/templates/_card.html` : **bootstrap** 사용\
+=> `<div class="row">`은 댓글 form을 한 줄로 만들어줌\
+=> `show_label=False` : 라벨을 출력하지 않음\
+=> `wrapper_class=''` : `mb-3`이 디폴트, 빈값으로 둬서 마진을 뺌
+=> 댓글폼 만들고 `comment_create`로 링크도 연결
+```html
+{% load django_bootstrap5 %}
+<div class="card my-3 p-0 col-12 offset-md-4 col-xl-4">
+
+    ...
+    <div class="card-footer">
+      <form action="{% url 'posts:comment_create' post.id %}" method="POST">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-9"> <!--12칸 중 9칸 차지-->
+            {% bootstrap_form form show_label=False wrapper_class='' %}
+            <!-- show_label=False : 라벨출력X -->
+            <!-- wrapper_class='' : mb-3이 디폴트, 빈값으로 둬서 마진을 뺌-->
+          </div>
+          <div class="col-2"> <!--12칸 중 2칸 차지-->
+            <input type="submit" class="btn btn-primary">
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+```
+- `posts/views.py`
+```python
+@login_required # 로그인 한 사람만 comment_create 실행
+def comment_create(request, post_id):
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.user = request.user
+        comment.post_id = post_id
+        comment.save()
+        return redirect('posts:index')
+```
+=> 로그아웃해도 comment창이 보임 => 로그인했을 때만 보여지게 설정
+```html
+<div class="card my-3 p-0 col-12 offset-md-4 col-xl-4">
+
+    ...
+    <div class="card-footer">
+      {% if user.is_authenticated %}
+      <form action="{% url 'posts:comment_create' post.id %}" method="POST">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-9"> <!--12칸 중 9칸 차지-->
+            {% bootstrap_form form show_label=False wrapper_class='' %}
+            <!-- show_label=False : 라벨출력X -->
+            <!-- wrapper_class='' : mb-3이 디폴트, 빈값으로 둬서 마진을 뺌-->
+          </div>
+          <div class="col-2"> <!--12칸 중 2칸 차지-->
+            <input type="submit" class="btn btn-primary">
+          </div>
+        </div>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+```

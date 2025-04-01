@@ -1,5 +1,7 @@
-<div class="card my-3 mx-3 p-0 col-12 col-md-6 col-xl-3">
-<!-- <div class="card my-3 p-0 col-12 offset-md-2 col-xl-4"> -->
+{% load django_bootstrap5 %}
+
+<!-- <div class="card my-3 p-0 col-12 col-md-6 col-xl-4"> -->
+<div class="card my-3 p-0 col-12 offset-md-4 col-xl-4">
 
     <div class="card-header">
         <img class="rounded-circle" src="{{post.user.profile_image.url}}" alt="" width="30px">
@@ -11,5 +13,22 @@
       <p class="card-text">{{post.content}}</p>
       <p class="card-text">{{post.created_at|timesince}}</p>
       <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+    </div>
+    <div class="card-footer">
+      {% if user.is_authenticated %}
+      <form action="{% url 'posts:comment_create' post.id %}" method="POST">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-9"> <!--12칸 중 9칸 차지-->
+            {% bootstrap_form form show_label=False wrapper_class='' %}
+            <!-- show_label=False : 라벨출력X -->
+            <!-- wrapper_class='' : mb-3이 디폴트, 빈값으로 둬서 마진을 뺌-->
+          </div>
+          <div class="col-2"> <!--12칸 중 2칸 차지-->
+            <input type="submit" class="btn btn-primary">
+          </div>
+        </div>
+      </form>
+      {% endif %}
     </div>
   </div>
