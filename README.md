@@ -868,3 +868,113 @@ class Post(models.Model):
 ## 7-2. Migration
 - `python manage.py makemigrations`
 - `python manage.py migrate`
+
+## 7-3. 좋아요 버튼 생성
+- `posts/templates/_card.html`
+- bootstrap icon 사용해서 하트 버튼 생성
+```html
+<div class="card my-3 p-0 col-12 offset-md-4 col-xl-4">
+
+    ...
+    <img src="{{post.image.url}}" class="" alt="...">
+    <div class="card-body">
+      <a href="{% url 'posts:like' post.id %}">
+        <i class="bi bi-heart"></i>
+      </a>
+      ...
+    </div>
+    ...
+</div>
+```
+- `posts/url.py`
+```python
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('create/', views.create, name='create'),
+
+    path('<int:post_id>/comments/create/', views.comment_create, name='comment_create'),
+    path('<int:post_id>/like/', views.like, name='like'),
+]
+```
+- `post/views.py`
+```python
+def like(request, post_id):
+    user = request.user
+    post = Post.objects.get(id=post_id)
+
+    # if post in user.like_posts.all():
+    # post가 user가 누른 게시물 목록에 있나요?
+    if user in post.like_users.all():
+    # user가 post에 좋아요를 누른 사람의 목록에 있나요?
+
+        # 좋아요 취소
+        user.like_posts.remove(post)
+        # post가 user가 좋아요를 누른 게시물의 목록에 있다면 post를 목록에서 제거
+        post.like_users.remove(user)
+        # user가 post에 좋아요를 누른 사용자의 목록에 있다면 user를 목록에서 제거
+    else:
+        # user.like_posts.add(post)
+        # post가 목록에 없으면 user가 누른 게시물 목록에 post를 추가
+        post.like_users.add(user)
+        # user가 목록에 없으면 좋아요를 누른 사람들의 목록에 user를 추가
+
+    return redirect('posts:index')
+```
+- `posts/templates/_cared.html`
+```html
+<div class="card my-3 p-0 col-12 offset-md-4 col-xl-4">
+
+    ...
+    <img src="{{post.image.url}}" class="" alt="...">
+    <div class="card-body">
+      <a href="{% url 'posts:like' post.id %}">
+        <i class="bi bi-heart"></i>
+      </a>
+      <span>{{post.like_users.all|length}}명이 좋아합니다.</span>
+      ...
+    </div>
+    ...
+</div>
+```
+- 좋아요 버튼(하트모양) 색 바꾸기
+=> `class="text-reset"` : 링크를 눌렀을 때 흑백처리
+```html
+<div class="card my-3 p-0 col-12 offset-md-4 col-xl-4">
+
+    ...
+    <img src="{{post.image.url}}" class="" alt="...">
+    <div class="card-body">
+      <a href="{% url 'posts:like' post.id %}" class="text-reset text-decoration-none">
+        <i class="bi bi-heart"></i>
+      </a>
+      <span>{{post.like_users.all|length}}명이 좋아합니다.</span>
+      ...
+    </div>
+    ...
+</div>
+```
+- 좋아요 버튼을 눌렀을 때 하트 채우기
+```html
+<div class="card my-3 p-0 col-12 offset-md-4 col-xl-4">
+
+    ...
+    <img src="{{post.image.url}}" class="" alt="...">
+    <div class="card-body">
+      <a href="{% url 'posts:like' post.id %}" class="text-reset text-decoration-none">
+        {% if user in post.like_users %}
+          <i class="bi bi-heart-fill" style="color: red;"></i>
+        {% else %}
+          <i class="bi bi-heart"></i>
+        {% endif %}
+      </a>
+      <span>{{post.like_users.all|length}}명이 좋아합니다.</span>
+      ...
+    </div>
+    ...
+</div>
+```
+
+
+
+### `posts/forms.py`
+exclude = ('user', 'like_users', )
