@@ -828,3 +828,43 @@ def comment_create(request, post_id):
     </div>
   </div>
 ```
+
+
+# 7. M : N 관계
+- M:N 관계에서는 중간테이블이 꼭 필요함\
+=> 병원에서 의사와 환자의 경우 예약테이블이 꼭 필요함\
+=> 의사와 예약은 1:N의 관계, 환자와 예약은 1:N의 관게
+- 인스타그램 게시물에 좋아요를 다는 경우\
+=> 게시물(Post)과 사용자(user) 사이에 좋아요(like)테이블 필요
+=> like테이블은 user_id와 post_id를 갖고있음
+
+## 7-1. modeling
+- `posts/models.py` : `Post`함수에 `like_users`추가
+```python
+class Post(models.Model):
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    # image = models.ImageField(upload_to='image')
+    image = ResizedImageField(
+        size=[500, 500],
+        crop=['middle', 'center'],
+        upload_to='image/%Y/%m', 
+        # 이미지 이름이 같은 파일은 다른 이름으로 저장됨
+        # => /%Y/%m 연도를 기준으로 폴더을 만들고 그 안에 달을 기준으로 폴더를 더 만듦
+    )
+    # 작성자 저장
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+        )
+    # 게시물에 좋아요를 단 사람들 저장
+    like_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='like_posts', # post_set이 user에 의해 만들어졌는데 like_users가 또 만들려고 시도해서 migration을 하면 에러가 생김
+        # => related_name을 사용해서 like_users에서 생성되는 post_set의 이름을 지정
+    )
+```
+
+## 7-2. Migration
+- `python manage.py makemigrations`
+- `python manage.py migrate`

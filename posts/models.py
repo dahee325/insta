@@ -14,10 +14,16 @@ class Post(models.Model):
         # 이미지 이름이 같은 파일은 다른 이름으로 저장됨
         # => /%Y/%m 연도를 기준으로 폴더을 만들고 그 안에 달을 기준으로 폴더를 더 만듦
     )
+    # 작성자 저장
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE
         )
+    # 게시물에 좋아요를 단 사람들 저장
+    like_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='like_posts',
+    )
 
 
 class Comment(models.Model):
