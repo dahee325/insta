@@ -6,12 +6,22 @@ from django.contrib.auth.decorators import login_required
 # Create your views here.
 def index(request):
     posts = Post.objects.all()
+    posts = posts.order_by('-created_at')
     form = CommentForm
     context = {
         'posts': posts,
         'form': form,
     }
     return render(request, 'index.html', context)
+
+
+def detail(request, post_id):
+    post = Post.objects.get(id=post_id)
+    context = {
+        'post': post,
+    }
+    return render(request, 'detail.html', context)
+
 
 @login_required
 def create(request):
@@ -62,6 +72,7 @@ def feed(request):
 
     # 내가 팔로우하는 사람들의 게시물 목록
     posts = Post.objects.filter(user__in=followings)
+    posts = posts.order_by('-created_at')
     form = CommentForm()
 
     context = {

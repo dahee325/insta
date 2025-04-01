@@ -1224,3 +1224,40 @@ def feed(request):
     }
     return render(request, 'index.html', context)
 ```
+
+### 내가 추가한 기능
+1. navbar의 username을 누르면 로그인한 user의 profile페이지로 연결
+- `templates/_nav.html`
+```html
+<a class="nav-link" href="{% url 'accounts:profile' user.username %}">{{user}}</a>
+```
+
+2. 게시글 최신순으로 바꾸기
+- `posts.views.py`
+```python
+def index(request):
+    posts = Post.objects.all()
+    posts = Post.objects.order_by('-created_at') # 추가
+    form = CommentForm
+    context = {
+        'posts': posts,
+        'form': form,
+    }
+    return render(request, 'index.html', context)
+```
+
+3. detail페이지 만들기
+- `accounts/templates/profile.html` : a태그로 감싸서 detail로 링크 연결
+```html
+        {% for post in user_profile.post_set.all %}
+            <div class="col-4">
+                <a href="{% url 'posts:detail' %}"> 
+                    <img src="{{post.image.url}}" alt="" class="img-fluid">
+                </a>
+            </div>
+        {% endfor %}
+```
+- `posts/urls.py`
+```python
+    path('<int:post_id>/', views.detail, name='detail'), # 추가
+```
