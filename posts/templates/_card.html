@@ -5,12 +5,12 @@
 
     <div class="card-header">
         <img class="rounded-circle" src="{{post.user.profile_image.url}}" alt="" width="30px">
-        <a href="">{{post.user.username}}</a>
+        <a href="{% url 'accounts:profile' post.user.username %}">{{post.user.username}}</a>
     </div>
     <img src="{{post.image.url}}" class="" alt="...">
     <div class="card-body">
       <a href="{% url 'posts:like' post.id %}" class="text-reset text-decoration-none">
-        {% if user in post.like_users %}
+        {% if user in post.like_users.all %}
           <i class="bi bi-heart-fill" style="color: red;"></i>
         {% else %}
           <i class="bi bi-heart"></i>

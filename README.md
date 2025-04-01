@@ -830,7 +830,7 @@ def comment_create(request, post_id):
 ```
 
 
-# 7. M : N 관계
+# 7. M : N 관계 -> Like
 - M:N 관계에서는 중간테이블이 꼭 필요함\
 => 병원에서 의사와 환자의 경우 예약테이블이 꼭 필요함\
 => 의사와 예약은 1:N의 관계, 환자와 예약은 1:N의 관게
@@ -961,7 +961,7 @@ def like(request, post_id):
     <img src="{{post.image.url}}" class="" alt="...">
     <div class="card-body">
       <a href="{% url 'posts:like' post.id %}" class="text-reset text-decoration-none">
-        {% if user in post.like_users %}
+        {% if user in post.like_users.all %}
           <i class="bi bi-heart-fill" style="color: red;"></i>
         {% else %}
           <i class="bi bi-heart"></i>
@@ -975,6 +975,71 @@ def like(request, post_id):
 ```
 
 
-
 ### `posts/forms.py`
 exclude = ('user', 'like_users', )
+
+# 8. Profile
+- `posts/templates/_card.html` : username을 누르면 profile 페이지로 이동
+```html
+<div class="card my-3 p-0 col-12 offset-md-4 col-xl-4">
+    <div class="card-header">
+        <img class="rounded-circle" src="{{post.user.profile_image.url}}" alt="" width="30px">
+        <a href="{% url 'accounts:profile' post.user.username %}">{{post.user.username}}</a>
+    </div>
+    ...
+  </div>
+```
+- `accounts/urls.py` : `profile`경로 생성
+```python
+urlpatterns = [
+    path('signup/', views.signup, name='signup'),
+    path('login/', views.login, name='login'),
+    path('logout/', views.logout, name='logout'),
+    path('<username>/', views.profile, name='profile'),
+]
+```
+- `accounts/views.py`
+```python
+from .models import User
+
+def profile(request, usernmae):
+    user_profile = User.objects.get(username=username)
+
+    context = {
+        'user_profile': user_profile,
+    }
+    return render(request, 'profile.html', context)
+```
+- `accounts/templates/profile.html` 파일 생성
+```html
+{% extends 'base.html' %}
+
+{% block body %}
+    <div class="row my-3">
+        <!--프로필 사진-->
+        <div class="col-3">
+            <img src="{{user_profile.profile_image.url}}" alt="" class="img-fluid rounded-circle">
+        </div>
+        <div class="col-9">
+            <!--이름과 팔로우 버튼-->
+            <div class="row">
+                <div class="col-3">{{user_profile.username}}</div>
+                <div class="col-9">팔로우</div>
+            </div>
+            <!--게시물, 팔로워, 팔로우 수-->
+            <div class="row">
+                <div class="col-4">게시물 :</div>
+                <div class="col-4">팔로워 :</div>
+                <div class="col-4">팔로우 : </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        {% for post in user_profile.post_set.all %}
+            <div class="col-4">
+                <img src="{{post.image.url}}" alt="" class="img-fluid">
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+```
