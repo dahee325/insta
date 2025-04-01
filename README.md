@@ -694,3 +694,19 @@ def create(request):
     ...
 </div>
 ```
+
+# 6. Comment
+## 6-1. modeling 
+- `posts/models.py`
+```python
+class Comment(models.Model):
+    content = models.CharFiedl(max_length=200)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+```
+
+## 6-2. Migration
+- `python manage.py makemigrations`
+- `python manage.py migrate`
+
+## 6-3. 
