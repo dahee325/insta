@@ -806,3 +806,25 @@ def comment_create(request, post_id):
     </div>
   </div>
 ```
+
+## 6-4. Read
+- `posts/templates/_card.html`
+```html
+<div class="card my-3 p-0 col-12 offset-md-4 col-xl-4">
+
+    ...
+    <div class="card-footer">
+      {% if user.is_authenticated %}
+      <form action="{% url 'posts:comment_create' post.id %}" method="POST">
+        {% csrf_token %}
+        ...
+      </form>
+      {% endif %}
+      <div class="mt-2">
+        {% for comment in post.comment_set.all %}
+          <li>{{comment.user}} : {{comment.content}}</li>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+```
