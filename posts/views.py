@@ -17,8 +17,10 @@ def index(request):
 
 def detail(request, post_id):
     post = Post.objects.get(id=post_id)
+    form = CommentForm
     context = {
         'post': post,
+        'form': form,
     }
     return render(request, 'detail.html', context)
 
@@ -39,6 +41,29 @@ def create(request):
         'form': form,
     }
     return render(request, 'create.html', context)
+
+@login_required
+def update(request, post_id):
+    post = Post.objects.get(id=post_id)
+    if request.method == 'POST':
+        form = PostForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            return redirect('posts:detail', post_id=post.id)
+    else:
+        form = PostForm(instance=post)
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'update.html', context)
+
+@login_required
+def delete(request, post_id):
+    post = Post.objects.get(id=post_id)
+    post.delete()
+    return redirect('accounts:profile', username=post.user.username)
+
 
 @login_required
 def comment_create(request, post_id):

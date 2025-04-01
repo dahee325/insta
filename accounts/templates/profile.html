@@ -30,9 +30,10 @@
         </div>
     </div>
     <div class="row">
-        {% for post in user_profile.post_set.all %}
+        <!-- for post in user_profile.post_set.all|dictsortreversed:'created_at' -->
+         {% for post in posts %}
             <div class="col-4">
-                <a href="{% url 'posts:detail' %}">
+                <a href="{% url 'posts:detail' post.id %}">
                     <img src="{{post.image.url}}" alt="" class="img-fluid">
                 </a>
             </div>

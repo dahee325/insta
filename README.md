@@ -1225,14 +1225,14 @@ def feed(request):
     return render(request, 'index.html', context)
 ```
 
-### 내가 추가한 기능
-1. navbar의 username을 누르면 로그인한 user의 profile페이지로 연결
+## 내가 추가한 기능
+### navbar의 username을 누르면 로그인한 user의 profile페이지로 연결
 - `templates/_nav.html`
 ```html
 <a class="nav-link" href="{% url 'accounts:profile' user.username %}">{{user}}</a>
 ```
 
-2. 게시글 최신순으로 바꾸기
+### index 게시글 최신순으로 바꾸기
 - `posts.views.py`
 ```python
 def index(request):
@@ -1246,12 +1246,23 @@ def index(request):
     return render(request, 'index.html', context)
 ```
 
-3. detail페이지 만들기
+### Comment 목록 수정
+- 리스트가 아닌 a태그를 사용, username만 진하게 표시
+- `posts/templates/_card.html`
+```html
+      <div class="mt-2">
+        {% for comment in post.comment_set.all %}
+          <a><strong>{{comment.user}}</strong> : {{comment.content}}</a>
+        {% endfor %}
+      </div>
+```
+
+### Read(1) - detail페이지 만들기
 - `accounts/templates/profile.html` : a태그로 감싸서 detail로 링크 연결
 ```html
         {% for post in user_profile.post_set.all %}
             <div class="col-4">
-                <a href="{% url 'posts:detail' %}"> 
+                <a href="{% url 'posts:detail' post.id %}">
                     <img src="{{post.image.url}}" alt="" class="img-fluid">
                 </a>
             </div>
@@ -1260,4 +1271,145 @@ def index(request):
 - `posts/urls.py`
 ```python
     path('<int:post_id>/', views.detail, name='detail'), # 추가
+```
+- `posts/views.py`
+```python
+def detail(request, post_id):
+    post = Post.objects.get(id=post_id)
+    form = CommentForm
+    context = {
+        'post': post,
+        'form': form,
+    }
+    return render(request, 'detail.html', context)
+```
+- `posts/templates/detail.html` 파일 생성
+```html
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block body %}
+    <div class="row">
+        <div class="card my-3 p-0 col-12 offset-md-4 col-xl-4">
+            <div class="card-header">
+                <img class="rounded-circle" src="{{post.user.profile_image.url}}" alt="" width="30px">
+                <a href="{% url 'accounts:profile' post.user.username %}">{{post.user.username}}</a>
+            </div>
+            <img src="{{post.image.url}}" class="" alt="...">
+            <div class="card-body">
+                <a href="{% url 'posts:like' post.id %}" class="text-reset text-decoration-none">
+                {% if user in post.like_users.all %}
+                    <i class="bi bi-heart-fill" style="color: red;"></i>
+                {% else %}
+                    <i class="bi bi-heart"></i>
+                {% endif %}
+                </a>
+                <span>{{post.like_users.all|length}}명이 좋아합니다.</span>
+                <!-- <h5 class="card-title">Card title</h5> -->
+                <p class="card-text">{{post.content}}</p>
+                <p class="card-text">{{post.created_at|timesince}}</p>
+                <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+            </div>
+            <div class="card-footer">
+                {% if user.is_authenticated %}
+                <form action="{% url 'posts:comment_create' post.id %}" method="POST">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-9"> <!--12칸 중 9칸 차지-->
+                    {% bootstrap_form form show_label=False wrapper_class='' %}
+                    <!-- show_label=False : 라벨출력X -->
+                    <!-- wrapper_class='' : mb-3이 디폴트, 빈값으로 둬서 마진을 뺌-->
+                    </div>
+                    <div class="col-2"> <!--12칸 중 2칸 차지-->
+                    <input type="submit" class="btn btn-primary">
+                    </div>
+                </div>
+                </form>
+                {% endif %}
+                <div class="mt-2">
+                {% for comment in post.comment_set.all %}
+                    <a><strong>{{comment.user}}</strong> : {{comment.content}}</a>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+```
+
+### Update, Delete
+- `posts/templates/detail.html` : 게시물 작성 시간 아래에 버튼 만들기
+```html
+{% if user == post.user %}
+<a class="btn btn-warning" href="{% url 'posts:update' post.id %}">수정</a>
+<a class="btn btn-danger" href="{% url 'posts:delete' post.id %}">삭제</a>
+{% endif %}
+```
+- `posts/urls.py`
+```python
+    path('<int:post_id>/update/', views.update, name='update'),
+    path('<int:post_id>/delete/', views.delete, name='delete'),
+```
+- `posts/views.py`
+```python
+@login_required
+def update(request, post_id):
+    post = Post.objects.get(id=post_id)
+    if request.method == 'POST':
+        form = PostForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            return redirect('posts:detail', post_id=post.id)
+    else:
+        form = PostForm(instance=post)
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'update.html', context)
+
+@login_required
+def delete(request, post_id):
+    post = Post.objects.get(id=post_id)
+    post.delete()
+    return redirect('accounts:profile', username=post.user.username)
+```
+- `posts/templates/update.html`
+```html
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block body%}
+<form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    <input type="submit" class="btn btn-warning" value="수정">
+</form>
+{% endblock %}
+```
+
+### detail 페이지의 게시글 최신순으로 바꾸기
+1. 함수에 인자 지정해서 사용
+- `accounts.views.py` : `profile`함수에 posts인자 추가
+```python
+def profile(request, username):
+    user_profile = User.objects.get(username=username)
+    posts = user_profile.post_set.all().order_by('-created_at') # 추가
+
+    context = {
+        'user_profile': user_profile,
+        'posts': posts, # 추가
+    }
+    return render(request, 'profile.html', context)
+```
+- `accounts/templates/profile.html`
+```html
+<!--{% for post in user_profile.post_set.all %}을 밑처럼 수정-->
+{% for post in posts %}
+```
+
+2. html에서 수정하기
+- `accounts/templates/profile.html` : `dictsortreversed`함수를 사용하여 정렬
+```html
+{% for post in user_profile.post_set.all|dictsortreversed:'created_at' %}
 ```

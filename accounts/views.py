@@ -45,11 +45,14 @@ def logout(request):
 
 def profile(request, username):
     user_profile = User.objects.get(username=username)
+    posts = user_profile.post_set.all().order_by('-created_at')
 
     context = {
         'user_profile': user_profile,
+        'posts': posts,
     }
     return render(request, 'profile.html', context)
+
 
 @login_required
 def follow(request, username):

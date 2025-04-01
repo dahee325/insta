@@ -40,7 +40,7 @@
       {% endif %}
       <div class="mt-2">
         {% for comment in post.comment_set.all %}
-          <li>{{comment.user}} : {{comment.content}}</li>
+          <a><strong>{{comment.user}}</strong> : {{comment.content}}</a>
         {% endfor %}
       </div>
     </div>
