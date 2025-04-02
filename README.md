@@ -1413,3 +1413,148 @@ def profile(request, username):
 ```html
 {% for post in user_profile.post_set.all|dictsortreversed:'created_at' %}
 ```
+
+# 11. JavaScript
+- `posts/templates/index.html`
+```html
+{% block body %}
+    ...
+    <script>
+        console.log('hello')
+    </script>
+{% endblock %}
+```
+=> 자바스크립트 쓸 준비 완료
+- `posts/templates/_card.html` : 하트 icon의 `class`에 `like` 추가
+-  `<a>`태그 지우기 => url이 아닌 자바스크립트로 보내기 위해서
+```html
+        {% if user in post.like_users.all %}
+          <i class="bi like bi-heart-fill" style="color: red;"></i>
+        {% else %}
+          <i class="bi like bi-heart"></i>
+        {% endif %}
+```
+- `posts/templates/index.html`
+```html
+    <script>
+        let likeBtns = document.querySelectorAll('i.like')
+        
+        likeBtns.forEach(function(likeBtns){
+            likeBtns.addEventListener('click', function(e){
+                console.log(e.target)
+            })
+        })
+
+    </script>
+```
+- `posts/templates/_card.html` : 하트를 눌렀을 때 몇번 게시물인지 출력하기
+```html
+        {% if user in post.like_users.all %}
+          <i class="bi like bi-heart-fill" style="color: red;" data-post-id="{{post.id}}"></i>
+        {% else %}
+          <i class="bi like bi-heart" data-post-id="{{post.id}}"></i>
+        {% endif %}
+```
+- `posts/templates/index.html`
+```html
+    <script>
+        let likeBtns = document.querySelectorAll('i.like')
+        
+        // 장고 서버로 요청 보내기 -> 요청을 토대로 하트 결과를 바꿔줌
+        let likeRequest = async (btn, postId) => {
+            let likeURL = `/posts/${postId}/like-async` // 다른 url하나 더 만들기
+            
+            let res = fetch(likeURL)
+        }
+
+        likeBtns.forEach(function(likeBtn){
+            likeBtn.addEventListener('click', function(e){
+                const postId = e.target.dataset.postId // icon에서 게시물id를 data-post-id로 설정해서 dataset.postId로 접근
+                
+                likeRequest(likeBtn, postId)
+            })
+        })
+
+    </script>
+```
+- `posts/urls.py`
+```python
+urlpatterns = [
+    ...
+    path('<int:id>/like-async/',views.like_async, name='like_async'),
+]
+```
+- `posts/views.py`
+```python
+def like_async(request, id):
+    user = request.user
+    post = Post.objects.get(id=id)
+    
+    if user in post.like_users.all():
+        post.like_users.remove(user)
+        status = False # 좋아요 취소
+    else:
+        post.like_users.add(user)
+        status = True # 좋아요 추가
+
+    context = {
+        'post_id': id, # 게시물 id
+        'status': status, # 좋아요를 추가했는지 취소했는지 알려줌
+        'count': len(post.like_users.all()) # 현재 시점의 게시물의 좋아요 개수
+    } # 자바스크립트가 볼 수 있는 json으로 바꿔줘야함 => JsonResponse
+    return JsonResponse(context) # => index.html의 res가 받음
+```
+- `posts/templates/_card.html` : 좋아요 개수를 `<i>`태그 안의 `<span>`태그를 만들어 넣음
+```html
+        {% if user in post.like_users.all %}
+          <i class="bi like bi-heart-fill" style="color: red;" data-post-id="{{post.id}}">
+            <span>{{post.like_users.all|length}}</span>
+          </i>
+        {% else %}
+          <i class="bi like bi-heart" data-post-id="{{post.id}}">
+            <span>{{post.like_users.all|length}}v</span>
+          </i>
+        {% endif %}
+      <span>명이 좋아합니다.</span>
+```
+- `posts/templates/index.html`
+```html
+    <script>
+        let likeBtns = document.querySelectorAll('i.like')
+        
+        // 장고 서버로 요청 보내기 -> 요청을 토대로 하트 결과를 바꿔줌
+        let likeRequest = async (btn, postId) => {
+            let likeURL = `/posts/${postId}/like-async`
+            
+            let res = await fetch(likeURL)
+            let result = await res.json()
+
+            if (result.status) { // status가 true면 빨강색으로
+                btn.style.color = 'red'
+                btn.classList.remove('bi-heart')
+                btn.classList.add('bi-heart-fill')
+            } else {
+                btn.style.color = 'black'
+                btn.classList.remove('bi-heart-fill')
+                btn.classList.add('bi-heart')
+            }
+            btn.querySelector('span').innerHTML = result.count // btn은 <i>를 의미
+        }
+
+        ...
+
+    </script>
+```
+- `posts/templates/_card.html` : 하트 색이 바뀔 때 숫자가 같이 바뀜 => 검정색으로 변환
+```html
+        {% if user in post.like_users.all %}
+          <i class="bi like bi-heart-fill" style="color: red;" data-post-id="{{post.id}}">
+            <span style="color: black">{{post.like_users.all|length}}</span>
+          </i>
+        {% else %}
+          <i class="bi like bi-heart" data-post-id="{{post.id}}">
+            <span style="color: black">{{post.like_users.all|length}}v</span>
+          </i>
+        {% endif %}
+      <span>명이 좋아합니다.</span>
+```

@@ -6,4 +6,35 @@
             {% include '_card.html' %}
         {% endfor %}
     </div>
+    <script>
+        let likeBtns = document.querySelectorAll('i.like')
+        
+        // 장고 서버로 요청 보내기 -> 요청을 토대로 하트 결과를 바꿔줌
+        let likeRequest = async (btn, postId) => {
+            let likeURL = `/posts/${postId}/like-async`
+            
+            let res = await fetch(likeURL)
+            let result = await res.json()
+
+            if (result.status) { // status가 true면 빨강색으로
+                btn.style.color = 'red'
+                btn.classList.remove('bi-heart')
+                btn.classList.add('bi-heart-fill')
+            } else {
+                btn.style.color = 'black'
+                btn.classList.remove('bi-heart-fill')
+                btn.classList.add('bi-heart')
+            }
+            btn.querySelector('span').innerHTML = result.count // btn은 <i>를 의미
+        }
+
+        likeBtns.forEach(function(likeBtn){
+            likeBtn.addEventListener('click', function(e){
+                const postId = e.target.dataset.postId // icon에서 게시물id를 data-post-id로 설정해서 dataset.postId로 접근
+                
+                likeRequest(likeBtn, postId)
+            })
+        })
+
+    </script>
 {% endblock %}
